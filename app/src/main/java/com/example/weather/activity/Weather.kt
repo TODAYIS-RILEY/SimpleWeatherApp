@@ -1,26 +1,38 @@
 package com.example.weather.activity
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weather.R
+import com.example.weather.ui.theme.SunnyBlue
+import com.example.weather.ui.theme.cloudYellow
+import com.example.weather.ui.theme.lakeBlue
+import com.example.weather.ui.theme.lightBlue
+import com.example.weather.ui.theme.rainBlue
+import com.example.weather.ui.theme.stormPurple
+import com.example.weather.ui.theme.sunnyOrange
 import com.example.weather.viewModel.GeoViewModel
 import com.example.weather.viewModel.WeatherViewModel
 import java.text.SimpleDateFormat
@@ -35,133 +47,173 @@ fun Weather() {
     val weatherData = weatherVM.weatherData
     val location = geoVM.locationName
 
+    val displayLocation = if (location.isNotBlank() && location === "null") {
+        weatherData?.name.toString()
+    } else {
+        location
+    }
+    val weatherMain = weatherData?.weather?.firstOrNull()?.main
+    val textColor = getDescriptionColor(weatherMain)
 
-    val lat = 42.951384
-    val lon = 89.189655
+    //吐魯番
+//        val lat = 42.951384
+//        val lon = 89.189655
+//    台北
+//        val lat = 25.03746
+//        val lon = 121.564558
+//    東京
+//        val lat = 35.689381
+//        val lon = 139.69181
+    //烏斯懷亞
+//        val lat = -54.843
+//        val lon = -68.296
+    //倫敦
+    val lat = 51.50631
+    val lon = -0.13731
+//    //安德內斯
+//        val lat = 69.31588
+//        val lon = 16.12030
 
     LaunchedEffect(Unit) {
         weatherVM.fetchWeather(lat, lon)
         geoVM.fetchLocationName(lat, lon)
     }
 
-    Box(
+    //Background Main entrance
+    Column (
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        SunnyBlue,
+                        lightBlue,
+                        lakeBlue
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset.Infinite
+                )
+            )
+            .padding(top = 50.dp)
+    ) {
+        LocationDisplay(weatherData?.sys?.sunrise?.let { unixToTime(it) }, displayLocation)
+        WeatherIconDisplay(weatherData?.weather?.firstOrNull()?.main)
+        TemperatureDisplay(weatherData?.main?.temp)
+        DescriptionDisplay(weatherData?.weather?.firstOrNull()?.description, textColor)
+    }
+}
+
+//日期 地點
+@Composable
+fun LocationDisplay(day: String?, location: String) {
+    Column (
+        modifier = Modifier
+            .height(140.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp)
+
+    ){
+        Text(
+            text = day.toString(),
+            fontSize = 20.sp,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = location,
+            fontSize = 55.sp,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.White,
+                    offset = Offset(0f, 0f),
+                    blurRadius = 6f
+                )
+            )
+        )
+    }
+}
+
+//大圖示
+@Composable
+fun WeatherIconDisplay(weatherMain: String?) {
+    val iconRes = when (weatherMain) {
+        "Clear" -> R.drawable.sun
+        "Clouds" -> R.drawable.clouds
+        "Rain" -> R.drawable.rain
+        "Snow" -> R.drawable.snow
+        "Thunderstorm" -> R.drawable.storm
+        else -> R.drawable.wind
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(R.drawable.image),
+            painter = painterResource(id = iconRes),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .size(350.dp)
         )
+    }
+}
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 80.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // 顯示城市名稱
-                Text(text = location, fontSize = 24.sp, color = Color.White)
-                Spacer(modifier = Modifier.height(8.dp))
+//溫度
+@Composable
+fun TemperatureDisplay(temperature: Double?) {
+    Column (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 40.dp)
+            .padding(top = 20.dp)
+    ){
+        Text(
+            text = "${temperature?.toInt()}°",
+            fontSize = 130.sp,
+            color = Color.White,
+            fontWeight = FontWeight.ExtraBold
+        )
+    }
+}
 
-                // 顯示氣象資料
-                Text(
-                    text = "天氣：${weatherData?.weather?.firstOrNull()?.description ?: "無資料"}",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = "主要類型：${weatherData?.weather?.firstOrNull()?.main ?: "無資料"}",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 顯示溫度資料
-                Text(
-                    text = "溫度：${weatherData?.main?.temp ?: "無資料"}°C",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = "體感溫度：${weatherData?.main?.feelsLike ?: "無資料"}°C",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = "最高溫度：${weatherData?.main?.tempMax ?: "無資料"}°C",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = "最低溫度：${weatherData?.main?.tempMin ?: "無資料"}°C",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 顯示濕度和氣壓
-                Text(
-                    text = "濕度：${weatherData?.main?.humidity ?: "無資料"}%",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = "氣壓：${weatherData?.main?.pressure ?: "無資料"} hPa",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 顯示風速資料
-                Text(
-                    text = "風速：${weatherData?.wind?.speed ?: "無資料"} m/s",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = "風向：${weatherData?.wind?.deg ?: "無資料"}°",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 顯示雲層資料
-                Text(
-                    text = "雲層覆蓋：${weatherData?.clouds?.all ?: "無資料"}%",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 顯示可見度資料
-                Text(text = "可見度：${weatherData?.visibility?.let { it / 1000 } ?: "無資料"} 公里",
-                    fontSize = 20.sp,
-                    color = Color.White)
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 顯示日出和日落時間
-                val sunriseTime = weatherData?.sys?.sunrise?.let { unixToTime(it) }
-                val sunsetTime = weatherData?.sys?.sunset?.let { unixToTime(it) }
-
-                Text(text = "日出時間：$sunriseTime", fontSize = 20.sp, color = Color.White)
-                Text(text = "日落時間：$sunsetTime", fontSize = 20.sp, color = Color.White)
-            }
+//天氣描述
+@Composable
+fun DescriptionDisplay(description: String?, color: Color) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp)
+            .padding(top = 15.dp)
+    ) {
+        Text(
+            text = description.toString(),
+            fontSize = 30.sp,
+            color = color,
+            fontWeight = FontWeight.Bold
+        )
 
     }
 }
-fun unixToTime(unixTime: Int): String {
-    val date = Date(unixTime * 1000L)
-    val format = SimpleDateFormat("HH:mm", Locale.getDefault())
-    return format.format(date)
+
+fun getDescriptionColor(weatherMain: String?): Color{
+    return when (weatherMain) {
+        "Clear" -> sunnyOrange
+        "Clouds" -> cloudYellow
+        "Rain" -> rainBlue
+        "Snow" -> Color.White
+        "Thunderstorm" -> stormPurple
+        else -> cloudYellow
+    }
 }
+
+fun unixToTime(unixTimestamp: Int): String {
+    val date = Date(unixTimestamp * 1000L)
+    val sdf = SimpleDateFormat("MMMM  dd, yyyy", Locale.getDefault())
+    return sdf.format(date)
+}
+
 @Preview(showBackground = true, name = "Weather Preview")
 @Composable
 fun WeatherPreview() {
