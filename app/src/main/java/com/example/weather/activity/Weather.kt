@@ -30,6 +30,7 @@ import com.example.weather.ui.theme.SunnyBlue
 import com.example.weather.ui.theme.cloudYellow
 import com.example.weather.ui.theme.lakeBlue
 import com.example.weather.ui.theme.lightBlue
+import com.example.weather.ui.theme.littleRainBlue
 import com.example.weather.ui.theme.rainBlue
 import com.example.weather.ui.theme.stormPurple
 import com.example.weather.ui.theme.sunnyOrange
@@ -59,17 +60,17 @@ fun Weather() {
 //        val lat = 42.951384
 //        val lon = 89.189655
 //    台北
-//        val lat = 25.03746
-//        val lon = 121.564558
+        val lat = 25.03746
+        val lon = 121.564558
 //    東京
 //        val lat = 35.689381
 //        val lon = 139.69181
-    //烏斯懷亞
+//    //烏斯懷亞
 //        val lat = -54.843
 //        val lon = -68.296
     //倫敦
-    val lat = 51.50631
-    val lon = -0.13731
+//    val lat = 51.50631
+//    val lon = -0.13731
 //    //安德內斯
 //        val lat = 69.31588
 //        val lon = 16.12030
@@ -96,7 +97,7 @@ fun Weather() {
             )
             .padding(top = 50.dp)
     ) {
-        LocationDisplay(weatherData?.sys?.sunrise?.let { unixToTime(it) }, displayLocation)
+        LocationDisplay(weatherData?.sys?.sunset?.let { unixToTime(it) }, displayLocation)
         WeatherIconDisplay(weatherData?.weather?.firstOrNull()?.main)
         TemperatureDisplay(weatherData?.main?.temp)
         DescriptionDisplay(weatherData?.weather?.firstOrNull()?.description, textColor)
@@ -142,6 +143,7 @@ fun WeatherIconDisplay(weatherMain: String?) {
         "Clear" -> R.drawable.sun
         "Clouds" -> R.drawable.clouds
         "Rain" -> R.drawable.rain
+        "Drizzle" -> R.drawable.rain
         "Snow" -> R.drawable.snow
         "Thunderstorm" -> R.drawable.storm
         else -> R.drawable.wind
@@ -203,6 +205,7 @@ fun getDescriptionColor(weatherMain: String?): Color{
         "Clouds" -> cloudYellow
         "Rain" -> rainBlue
         "Snow" -> Color.White
+        "Drizzle" -> littleRainBlue
         "Thunderstorm" -> stormPurple
         else -> cloudYellow
     }
