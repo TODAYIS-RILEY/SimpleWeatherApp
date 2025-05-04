@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 
 
 class WeatherViewModel : ViewModel() {
+
+    private val weatherCache = mutableMapOf<Pair<Double, Double>, ResponseApi>()
     var weatherData by mutableStateOf<ResponseApi?>(null)
         private set
 
@@ -19,6 +21,15 @@ class WeatherViewModel : ViewModel() {
         private set
 
     fun fetchWeather(lat: Double, lon: Double) {
+        val key = lat to lon
+        val cached = weatherCache[key]
+
+        if (cached != null) {
+            weatherData = cached
+            isLoading = false
+            return
+        }
+
         viewModelScope.launch {
             isLoading = true
             try {
@@ -28,13 +39,16 @@ class WeatherViewModel : ViewModel() {
                     apiKey = "df5de48c0ec8bc1451712469556276e9"
                 )
                 if (response.isSuccessful) {
-                    weatherData = response.body()
+                    response.body()?.let {
+                        weatherData = it
+                        weatherCache[key] = it // 加入快取
+                    }
                 } else {
                     Log.e("WeatherVM", "天氣查詢失敗：${response.code()}")
                 }
             } catch (e: Exception) {
                 Log.e("WeatherVM", "Exception: ${e.message}")
-            }finally {
+            } finally {
                 isLoading = false
             }
         }

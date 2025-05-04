@@ -2,14 +2,19 @@ package com.example.weather.activity
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weather.R
+import com.example.weather.model.cityList
 import com.example.weather.ui.theme.SunnyBlue
 import com.example.weather.ui.theme.cloudYellow
 import com.example.weather.ui.theme.lakeBlue
@@ -36,7 +42,6 @@ import com.example.weather.ui.theme.littleRainBlue
 import com.example.weather.ui.theme.rainBlue
 import com.example.weather.ui.theme.stormPurple
 import com.example.weather.ui.theme.sunnyOrange
-import com.example.weather.viewModel.GeoViewModel
 import com.example.weather.viewModel.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -45,78 +50,84 @@ import java.util.Locale
 @Composable
 fun Weather() {
     val weatherVM: WeatherViewModel = viewModel()
-    val geoVM: GeoViewModel = viewModel()
+
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { cityList.size })
 
     val weatherData = weatherVM.weatherData
-    val location = geoVM.locationName
 
-    val displayLocation = if (location.isNotBlank() && location === "null") {
-        weatherData?.name.toString()
-    } else {
-        location
-    }
     val weatherMain = weatherData?.weather?.firstOrNull()?.main
     val textColor = getDescriptionColor(weatherMain)
 
     val isLoading = weatherVM.isLoading
 
-    //吐魯番
-//        val lat = 42.951384
-//        val lon = 89.189655
-//    台北
-//        val lat = 25.03746
-//        val lon = 121.564558
-//    東京
-//        val lat = 35.689381
-//        val lon = 139.69181
-//    //烏斯懷亞
-//        val lat = -54.843
-//        val lon = -68.296
-    //倫敦
-//    val lat = 51.50631
-//    val lon = -0.13731
-//    //安德內斯
-    val lat = 69.31588
-    val lon = 16.12030
-
-    LaunchedEffect(Unit) {
-        weatherVM.fetchWeather(lat, lon)
-        geoVM.fetchLocationName(lat, lon)
+    LaunchedEffect(pagerState.currentPage) {
+        val city = cityList[pagerState.currentPage]
+        weatherVM.fetchWeather(city.lat, city.lon)
     }
 
     //Background Main entrance
-
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            SunnyBlue,
-                            lightBlue,
-                            lakeBlue
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset.Infinite
-                    )
-                )
-                .padding(top = 50.dp)
+    Column(  modifier = Modifier
+        .fillMaxSize()
+        .background(
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    SunnyBlue,
+                    lightBlue,
+                    lakeBlue
+                ),
+                start = Offset(0f, 0f),
+                end = Offset.Infinite
+            )
+        )
         ) {
-//            if (isLoading) {
-//                Box(
-//                    modifier = Modifier.fillMaxSize(),
-//                    contentAlignment = Alignment.Center
-//                ) {
-//                    CircularProgressIndicator()
-//                }
-//            }
-            LocationDisplay(weatherData?.sys?.sunset?.let { unixToTime(it) }, displayLocation)
-            WeatherIconDisplay(weatherData?.weather?.firstOrNull()?.main)
-            TemperatureDisplay(weatherData?.main?.temp)
-            DescriptionDisplay(weatherData?.weather?.firstOrNull()?.description, textColor)
+
+        // HorizontalPager：顯示當前選擇的城市天氣
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) { page ->
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator()
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        LocationDisplay(weatherData?.sys?.sunset?.let { unixToTime(it) }, cityList[page].name)
+                        WeatherIconDisplay(weatherData?.weather?.firstOrNull()?.main)
+                        TemperatureDisplay(weatherData?.main?.temp)
+                        DescriptionDisplay(weatherData?.weather?.firstOrNull()?.description, textColor)
+                    }
+                }
+            }
+        }
+
+        // 分頁指示器（圓點）
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            repeat(cityList.size) { index ->
+                val color = if (pagerState.currentPage == index) Color.White else Color.Gray
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .padding(4.dp)
+                        .background(color, shape = CircleShape)
+                )
+            }
         }
     }
+}
+
 
 
 
@@ -175,6 +186,7 @@ fun WeatherIconDisplay(weatherMain: String?) {
             modifier = Modifier
                 .size(350.dp)
         )
+        Text(weatherMain.toString())
     }
 }
 
