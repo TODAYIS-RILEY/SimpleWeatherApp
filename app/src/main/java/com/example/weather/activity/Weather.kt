@@ -2,6 +2,7 @@ package com.example.weather.activity
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,12 +58,14 @@ fun Weather() {
     val weatherMain = weatherData?.weather?.firstOrNull()?.main
     val textColor = getDescriptionColor(weatherMain)
 
+    val isLoading = weatherVM.isLoading
+
     //吐魯番
 //        val lat = 42.951384
 //        val lon = 89.189655
 //    台北
-        val lat = 25.03746
-        val lon = 121.564558
+//        val lat = 25.03746
+//        val lon = 121.564558
 //    東京
 //        val lat = 35.689381
 //        val lon = 139.69181
@@ -72,8 +76,8 @@ fun Weather() {
 //    val lat = 51.50631
 //    val lon = -0.13731
 //    //安德內斯
-//        val lat = 69.31588
-//        val lon = 16.12030
+    val lat = 69.31588
+    val lon = 16.12030
 
     LaunchedEffect(Unit) {
         weatherVM.fetchWeather(lat, lon)
@@ -81,39 +85,51 @@ fun Weather() {
     }
 
     //Background Main entrance
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        SunnyBlue,
-                        lightBlue,
-                        lakeBlue
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset.Infinite
+
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            SunnyBlue,
+                            lightBlue,
+                            lakeBlue
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset.Infinite
+                    )
                 )
-            )
-            .padding(top = 50.dp)
-    ) {
-        LocationDisplay(weatherData?.sys?.sunset?.let { unixToTime(it) }, displayLocation)
-        WeatherIconDisplay(weatherData?.weather?.firstOrNull()?.main)
-        TemperatureDisplay(weatherData?.main?.temp)
-        DescriptionDisplay(weatherData?.weather?.firstOrNull()?.description, textColor)
+                .padding(top = 50.dp)
+        ) {
+//            if (isLoading) {
+//                Box(
+//                    modifier = Modifier.fillMaxSize(),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    CircularProgressIndicator()
+//                }
+//            }
+            LocationDisplay(weatherData?.sys?.sunset?.let { unixToTime(it) }, displayLocation)
+            WeatherIconDisplay(weatherData?.weather?.firstOrNull()?.main)
+            TemperatureDisplay(weatherData?.main?.temp)
+            DescriptionDisplay(weatherData?.weather?.firstOrNull()?.description, textColor)
+        }
     }
-}
+
+
 
 //日期 地點
 @Composable
 fun LocationDisplay(day: String?, location: String) {
-    Column (
+    Column(
         modifier = Modifier
             .height(140.dp)
             .fillMaxWidth()
             .padding(horizontal = 30.dp)
 
-    ){
+    ) {
         Text(
             text = day.toString(),
             fontSize = 20.sp,
@@ -165,12 +181,12 @@ fun WeatherIconDisplay(weatherMain: String?) {
 //溫度
 @Composable
 fun TemperatureDisplay(temperature: Double?) {
-    Column (
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 40.dp)
             .padding(top = 20.dp)
-    ){
+    ) {
         Text(
             text = "${temperature?.toInt()}°",
             fontSize = 130.sp,
@@ -199,7 +215,7 @@ fun DescriptionDisplay(description: String?, color: Color) {
     }
 }
 
-fun getDescriptionColor(weatherMain: String?): Color{
+fun getDescriptionColor(weatherMain: String?): Color {
     return when (weatherMain) {
         "Clear" -> sunnyOrange
         "Clouds" -> cloudYellow

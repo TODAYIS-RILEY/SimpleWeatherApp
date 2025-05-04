@@ -15,8 +15,12 @@ class WeatherViewModel : ViewModel() {
     var weatherData by mutableStateOf<ResponseApi?>(null)
         private set
 
+    var isLoading by mutableStateOf(true)
+        private set
+
     fun fetchWeather(lat: Double, lon: Double) {
         viewModelScope.launch {
+            isLoading = true
             try {
                 val response = RetrofitInstance.api.getCurrentWeather(
                     lat = lat,
@@ -30,6 +34,8 @@ class WeatherViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 Log.e("WeatherVM", "Exception: ${e.message}")
+            }finally {
+                isLoading = false
             }
         }
     }
