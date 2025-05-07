@@ -12,8 +12,8 @@
 
 ## 📸 截圖
 
-<img src="Screenshot_01.png" alt="Home Screen" width="300"/>
-
-<img src="Screenshot_02.png" alt="Home Screen" width="300"/>
-
-<img src="Screenshot_03.png" alt="Home Screen" width="300"/>
+<div style="display: flex; gap: 10px;">
+  <img src="Screenshot_01.png" alt="Home Screen" width="300"/>
+  <img src="Screenshot_02.png" alt="Result Screen" width="300"/>
+  <img src="Screenshot_03.png" alt="Another Screen" width="300"/>
+</div>
