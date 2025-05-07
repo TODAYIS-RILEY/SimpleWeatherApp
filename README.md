@@ -16,6 +16,5 @@
 <img src="Screenshot_01.png" alt="Home Screen" width="300"/>
 清邁：
 <img src="Screenshot_02.png" alt="Home Screen" width="300"/>
-
 巴格達：
 <img src="Screenshot_03.png" alt="Home Screen" width="300"/>
