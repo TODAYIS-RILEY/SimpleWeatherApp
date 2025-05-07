@@ -12,9 +12,6 @@
 
 ## 📸 截圖
 
-台北：
-<img src="Screenshot_01.png" alt="Home Screen" width="200"/>
-清邁：
-<img src="Screenshot_02.png" alt="Home Screen" width="200"/>
-巴格達：
-<img src="Screenshot_03.png" alt="Home Screen" width="200"/>
+<img src="Screenshot_01.png" alt="Home Screen" width="300"/>
+<img src="Screenshot_02.png" alt="Home Screen" width="300"/>
+<img src="Screenshot_03.png" alt="Home Screen" width="300"/>
