@@ -186,7 +186,6 @@ fun WeatherIconDisplay(weatherMain: String?) {
             modifier = Modifier
                 .size(350.dp)
         )
-        Text(weatherMain.toString())
     }
 }
 
