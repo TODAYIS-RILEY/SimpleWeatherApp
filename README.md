@@ -13,10 +13,9 @@
 ## 📸 截圖
 
 台北：
-![rain Screen](Screenshot_01.png)
-
+<img src="Screenshot_01.png" alt="Home Screen" width="300"/>
 清邁：
-![clouds Screen](Screenshot_02.png)
+<img src="Screenshot_02.png" alt="Home Screen" width="300"/>
 
 巴格達：
-![sun Screen](Screenshot_03.png)
+<img src="Screenshot_03.png" alt="Home Screen" width="300"/>
