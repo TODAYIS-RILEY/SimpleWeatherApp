@@ -11,24 +11,19 @@ private val sharedOkHttpClient = OkHttpClient.Builder()
     .writeTimeout(60, TimeUnit.SECONDS)
     .build()
 
-object RetrofitInstance {
-    val api: WeatherApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://api.openweathermap.org/data/2.5/")
-            .client(sharedOkHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(WeatherApiService::class.java)
-    }
+private val sharedRetrofit: Retrofit by lazy {
+    Retrofit.Builder()
+        .baseUrl("https://api.openweathermap.org/")
+        .client(sharedOkHttpClient)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
 }
 
-object GeoRetrofitInstance {
-    val api: GeoApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://api.openweathermap.org/geo/1.0/")
-            .client(sharedOkHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(GeoApiService::class.java)
+object RetrofitInstance {
+    val api: WeatherApiService by lazy {
+        sharedRetrofit.create(WeatherApiService::class.java)
+    }
+    val Geoapi: GeoApiService by lazy {
+        sharedRetrofit.create(GeoApiService::class.java)
     }
 }

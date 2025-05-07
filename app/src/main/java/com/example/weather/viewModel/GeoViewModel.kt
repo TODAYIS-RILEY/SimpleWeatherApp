@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.weather.server.GeoRetrofitInstance
+import com.example.weather.server.RetrofitInstance
 import kotlinx.coroutines.launch
 
 class GeoViewModel : ViewModel() {
@@ -16,7 +16,7 @@ class GeoViewModel : ViewModel() {
     fun fetchLocationName(lat: Double, lon: Double) {
         viewModelScope.launch{
             try {
-                val response = GeoRetrofitInstance.api.reverseGeocoding(
+                val response = RetrofitInstance.Geoapi.reverseGeocoding(
                     lat = lat,
                     lon = lon,
                     apiKey = "df5de48c0ec8bc1451712469556276e9"

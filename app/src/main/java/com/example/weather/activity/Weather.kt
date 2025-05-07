@@ -1,105 +1,249 @@
 package com.example.weather.activity
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
-import androidx.compose.material3.MenuAnchorType
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weather.R
-import com.example.weather.model.taiwanCities
-import com.example.weather.viewModel.GeoViewModel
+import com.example.weather.model.cityList
+import com.example.weather.ui.theme.SunnyBlue
+import com.example.weather.ui.theme.cloudYellow
+import com.example.weather.ui.theme.lakeBlue
+import com.example.weather.ui.theme.lightBlue
+import com.example.weather.ui.theme.littleRainBlue
+import com.example.weather.ui.theme.rainBlue
+import com.example.weather.ui.theme.stormPurple
+import com.example.weather.ui.theme.sunnyOrange
 import com.example.weather.viewModel.WeatherViewModel
-import kotlin.text.startsWith
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Weather() {
     val weatherVM: WeatherViewModel = viewModel()
 
-    var selectedCity by remember { mutableStateOf(taiwanCities[0]) }
-    var inputText by remember { mutableStateOf("") }
-    val filteredOptions = taiwanCities.filter { it.name.startsWith(inputText, true) }
-    var expanded by remember { mutableStateOf(false) }
-    expanded = expanded && filteredOptions.isNotEmpty()
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { cityList.size })
 
-    LaunchedEffect(selectedCity) {
-        weatherVM.fetchWeather(
-            lat = selectedCity.lat,
-            lon = selectedCity.lon,
-        )
-        inputText=""
+    val weatherData = weatherVM.weatherData
+
+    val weatherMain = weatherData?.weather?.firstOrNull()?.main
+    val textColor = getDescriptionColor(weatherMain)
+
+    val isLoading = weatherVM.isLoading
+
+    LaunchedEffect(pagerState.currentPage) {
+        val city = cityList[pagerState.currentPage]
+        weatherVM.fetchWeather(city.lat, city.lon)
     }
 
-    val weather = weatherVM.weatherData
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it }
-        ) {
-            TextField(
-                readOnly = false,
-                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable, true),
-                value = inputText,
-                onValueChange = {
-                    inputText = it
-                    expanded = true
-                },
-                singleLine = true,
-                label = { Text("輸入台灣縣市") },
-                trailingIcon = { TrailingIcon(expanded = expanded) }
+    //Background Main entrance
+    Column(  modifier = Modifier
+        .fillMaxSize()
+        .background(
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    SunnyBlue,
+                    lightBlue,
+                    lakeBlue
+                ),
+                start = Offset(0f, 0f),
+                end = Offset.Infinite
             )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
+        )
+        ) {
+
+        // HorizontalPager：顯示當前選擇的城市天氣
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) { page ->
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                filteredOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option.name) },
-                        onClick = {
-                            selectedCity = option
-                            inputText = option.name
-                            expanded = false
-                        }
-                    )
+                if (isLoading) {
+                    CircularProgressIndicator()
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        LocationDisplay(weatherData?.sys?.sunset?.let { unixToTime(it) }, cityList[page].name)
+                        WeatherIconDisplay(weatherData?.weather?.firstOrNull()?.main)
+                        TemperatureDisplay(weatherData?.main?.temp)
+                        DescriptionDisplay(weatherData?.weather?.firstOrNull()?.description, textColor)
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (weather != null) {
-            Text(text = "位置：${selectedCity.name}", fontSize = 20.sp)
-            Text(text = "溫度：${weather.main?.temp?: "無資料"}°C", fontSize = 20.sp)
-            Text(text = "天氣：${weather.weather?.firstOrNull()?.description ?: "無資料"}", fontSize = 20.sp)
-        }else {
-            Text(text = "載入中...", fontSize = 20.sp)
+        // 分頁指示器（圓點）
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            repeat(cityList.size) { index ->
+                val color = if (pagerState.currentPage == index) Color.White else Color.Gray
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .padding(4.dp)
+                        .background(color, shape = CircleShape)
+                )
+            }
         }
     }
 }
+
+
+
+
+//日期 地點
+@Composable
+fun LocationDisplay(day: String?, location: String) {
+    Column(
+        modifier = Modifier
+            .height(140.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp)
+
+    ) {
+        Text(
+            text = day.toString(),
+            fontSize = 20.sp,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = location,
+            fontSize = 55.sp,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.White,
+                    offset = Offset(0f, 0f),
+                    blurRadius = 6f
+                )
+            )
+        )
+    }
+}
+
+//大圖示
+@Composable
+fun WeatherIconDisplay(weatherMain: String?) {
+    val iconRes = when (weatherMain) {
+        "Clear" -> R.drawable.sun
+        "Clouds" -> R.drawable.clouds
+        "Rain" -> R.drawable.rain
+        "Drizzle" -> R.drawable.rain
+        "Snow" -> R.drawable.snow
+        "Thunderstorm" -> R.drawable.storm
+        else -> R.drawable.wind
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = null,
+            modifier = Modifier
+                .size(350.dp)
+        )
+    }
+}
+
+//溫度
+@Composable
+fun TemperatureDisplay(temperature: Double?) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 40.dp)
+            .padding(top = 20.dp)
+    ) {
+        Text(
+            text = "${temperature?.toInt()}°",
+            fontSize = 130.sp,
+            color = Color.White,
+            fontWeight = FontWeight.ExtraBold
+        )
+    }
+}
+
+//天氣描述
+@Composable
+fun DescriptionDisplay(description: String?, color: Color) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp)
+            .padding(top = 15.dp)
+    ) {
+        Text(
+            text = description.toString(),
+            fontSize = 30.sp,
+            color = color,
+            fontWeight = FontWeight.Bold
+        )
+
+    }
+}
+
+fun getDescriptionColor(weatherMain: String?): Color {
+    return when (weatherMain) {
+        "Clear" -> sunnyOrange
+        "Clouds" -> cloudYellow
+        "Rain" -> rainBlue
+        "Snow" -> Color.White
+        "Drizzle" -> littleRainBlue
+        "Thunderstorm" -> stormPurple
+        else -> cloudYellow
+    }
+}
+
+fun unixToTime(unixTimestamp: Int): String {
+    val date = Date(unixTimestamp * 1000L)
+    val sdf = SimpleDateFormat("MMMM  dd, yyyy", Locale.getDefault())
+    return sdf.format(date)
+}
+
 @Preview(showBackground = true, name = "Weather Preview")
 @Composable
 fun WeatherPreview() {
